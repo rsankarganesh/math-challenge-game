@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Masters: Turbo Charge</title>
+    <style>
+        :root {
+            /* Color Palette - Modern & Energetic */
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --primary: #0f3460;
+            --accent-blue: #4cc9f0;
+            --accent-green: #2ecc71; /* Neon Green */
+            --accent-orange: #e94560;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --btn-shadow: rgba(0, 0, 0, 0.3);
+            
+            /* Spacing & Radius */
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --container-width: 600px;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --primary: #dbeafe;
+            --accent-blue: #2563eb;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- Layout Containers --- */
+        #app {
+            width: 100%;
+            max-width: var(--container-width);
+            height: 100vh;
+            max-height: 900px;
+            position: relative;
+            background: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        @media (min-width: 600px) {
+            #app {
+                height: 90vh;
+                border-radius: var(--radius-lg);
+            }
+        }
+
+        /* --- Screens --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: scale(0.95);
+            z-index: 10;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: scale(1);
+            z-index: 20;
+        }
+
+        /* --- Typography & Icons --- */
+        h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+        
+        .title-large {
+            font-size: 3rem;
+            background: linear-gradient(45deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            fill: currentColor;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, var(--accent-blue), #3b82f6); }
+        .btn-success { background: linear-gradient(135deg, var(--accent-green), #22c55e); }
+        .btn-danger { background: linear-gradient(135deg, var(--accent-orange), #ef4444); }
+        
+        .btn:active { transform: scale(0.96); }
+        .btn:hover { filter: brightness(1.1); }
+
+        /* --- Home Screen --- */
+        #home-screen { justify-content: center; align-items: center; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--accent-blue); }
+        .stat-label { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* --- Game Screen --- */
+        #game-screen { justify-content: space-between; }
+
+        /* Header Bar */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: var(--radius-md);
+        }
+        .streak-container { display: flex; align-items: center; gap: 5px; color: var(--accent-orange); font-weight: bold; }
+        .level-badge { background: var(--accent-blue); padding: 5px 10px; border-radius: 20px; font-size: 0.9rem; }
+
+        /* Progress Bars */
+        .bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .xp-fill { height: 100%; background: var(--accent-blue); width: 0%; transition: width 0.5s ease; }
+        .timer-fill { height: 100%; background: var(--accent-green); width: 100%; transition: width 1s linear; }
+
+        /* Question Area */
+        .question-area {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            font-weight: 900;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+        
+        /* Grid Layout for Answers */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding-bottom: 20px;
+        }
+        .answer-btn {
+            height: 80px;
+            font-size: 2rem;
+            background: rgba(255,255,255,0.1);
+            border-bottom: 5px solid rgba(0,0,0,0.2);
+        }
+
+        /* --- Feedback Animations --- */
+        @keyframes correct-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background-color: var(--accent-green); }
+            100% { transform: scale(1); }
+        }
+        @keyframes wrong-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); background-color: var(--accent-orange); }
+            75% { transform: translateX(10px); }
+        }
+
+        .correct { animation: correct-pop 0.4s forwards; }
+        .wrong { animation: wrong-shake 0.4s forwards; }
+
+        /* --- Level Up / Summary Modal --- */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        .modal.open { display: flex; }
+        .summary-title { font-size: 2.5rem; margin-bottom: 20px; color: var(--accent-green); }
+
+        /* --- Leaderboard --- */
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+
+        /* --- Settings Toggle --- */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        /* Floating Text (XP Gain) */
+        .floater {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="app">
+
+    <!-- HOME SCREEN -->
+    <div id="home-screen" class="screen active">
+        <h1 class="title-large">Math Masters<br><span style="font-size:1.5rem; color:var(--text-muted)">Turbo Charge</span></h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-val" id="home-level">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="home-xp">0</div>
+                <div class="stat-label">Total XP</div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="game.startLevel()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play Next Level
+        </button>
+        <button class="btn" onclick="ui.showScreen('leaderboard-screen')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 6h4v8H4v-8zm16 8h-4v-6h4v6z"/></svg> Leaderboard
+        </button>
+        <button class="btn" onclick="ui.showScreen('settings-screen')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg> Settings
+        </button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen">
+        <div>
+            <div class="game-header">
+                <div class="level-badge">Level <span id="game-level-disp">1</span></div>
+                <div class="streak-container">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+                    <span id="streak-disp">0</span>
+                </div>
+                <div style="font-weight:bold; color: var(--accent-blue)">XP: <span id="game-xp-disp">0</span></div>
+            </div>
+            
+            <div class="bar-container" style="background: rgba(0,0,0,0.5)">
+                <div id="timer-bar" class="timer-fill"></div>
+            </div>
+        </div>
+
+        <div class="question-area" id="question-text">
+            2 + 2
+        </div>
+
+        <div class="answers-grid" id="answers-container">
+            <!-- Buttons injected by JS -->
+        </div>
+    </div>
+
+    <!-- LEADERBOARD SCREEN -->
+    <div id="leaderboard-screen" class="screen">
+        <h2 class="title-large" style="font-size: 2rem;">Top Masters</h2>
+        <ul id="leaderboard-list" class="leaderboard-list">
+            <!-- Populated by JS -->
+        </ul>
+        <button class="btn btn-primary" onclick="ui.showScreen('home-screen')">Back</button>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div id="settings-screen" class="screen">
+        <h2 class="title-large" style="font-size: 2rem;">Settings</h2>
+        
+        <div class="stat-card" style="width:100%; text-align:left; margin-bottom: 20px;">
+            <div class="toggle-row">
+                <span>Sound Effects</span>
+                <input type="checkbox" id="sound-toggle" checked onchange="game.toggleSound()">
+            </div>
+            <div class="toggle-row">
+                <span>Dark/Light Mode</span>
+                <input type="checkbox" id="theme-toggle" onchange="ui.toggleTheme()">
+            </div>
+            <div class="toggle-row">
+                <span>Reset Progress</span>
+                <button style="padding: 5px 10px; font-size: 0.8rem;" class="btn-danger" onclick="game.resetProgress()">Reset</button>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="ui.showScreen('home-screen')">Back</button>
+    </div>
+
+    <!-- MODAL (Summary) -->
+    <div id="summary-modal" class="modal">
+        <div style="background: var(--card-bg); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 2px solid var(--accent-blue);">
+            <h2 id="modal-title" class="summary-title">Level Complete!</h2>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div style="color:var(--accent-green)" class="stat-val" id="sum-acc">100%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+                <div class="stat-card">
+                    <div style="color:var(--accent-orange)" class="stat-val" id="sum-xp">+150</div>
+                    <div class="stat-label">XP Earned</div>
+                </div>
+            </div>
+
+            <p id="level-msg" style="margin-bottom: 20px; color: var(--text-muted)">Great job!</p>
+
+            <button class="btn btn-success" onclick="game.closeSummary()">Continue</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/**
+ * AUDIO SYSTEM (Synthesized - No files needed)
+ */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const sound = {
+    playTone: (freq, type, duration) => {
+        if (!game.settings.sound) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    },
+    correct: () => {
+        sound.playTone(600, 'sine', 0.1);
+        setTimeout(() => sound.playTone(800, 'sine', 0.2), 100);
+    },
+    wrong: () => sound.playTone(150, 'sawtooth', 0.3),
+    levelUp: () => {
+        [400, 500, 600, 800].forEach((f, i) => setTimeout(() => sound.playTone(f, 'square', 0.2), i * 100));
+    }
+};
+
+/**
+ * GAME LOGIC
+ */
+class MathGame {
+    constructor() {
+        this.state = this.loadState();
+        this.currentLevelConfig = {};
+        this.qData = null;
+        this.timer = null;
+        this.timeLeft = 0;
+        this.sessionStats = { correct: 0, total: 0, xpGained: 0, streak: 0 };
+        this.settings = { sound: true, difficulty: 1 }; // 1=normal
+    }
+
+    loadState() {
+        const saved = localStorage.getItem('MathMasters_Save');
+        return saved ? JSON.parse(saved) : { 
+            level: 1, 
+            xp: 0, 
+            totalQuestions: 0, 
+            bestStreak: 0,
+            history: [] // For leaderboard
+        };
+    }
+
+    saveState() {
+        localStorage.setItem('MathMasters_Save', JSON.stringify(this.state));
+        ui.updateHomeStats();
+    }
+
+    resetProgress() {
+        if(confirm("Are you sure? All progress will be lost.")) {
+            localStorage.removeItem('MathMasters_Save');
+            location.reload();
+        }
+    }
+
+    getLevelConfig(level) {
+        // Logic for infinite scaling past level 10
+        const l = level > 10 ? 10 : level;
+        const scale = level > 10 ? level - 9 : 1; 
+
+        const configs = {
+            1: { type: 'add', range: 20, time: 20, qs: 5, desc: "Basic Addition" },
+            2: { type: 'sub', range: 20, time: 20, qs: 5, desc: "Basic Subtraction" },
+            3: { type: 'add', range: 50, time: 25, qs: 7, desc: "Big Addition" },
+            4: { type: 'sub', range: 50, time: 25, qs: 7, desc: "Big Subtraction" },
+            5: { type: 'mult', range: 12, time: 20, qs: 10, desc: "Times Tables" },
+            6: { type: 'mixed', range: 50, time: 20, qs: 10, desc: "Mixed Ops" },
+            7: { type: 'div', range: 100, time: 25, qs: 10, desc: "Division" },
+            8: { type: 'complex', range: 20, time: 30, qs: 10, desc: "Multi-Step" },
+            9: { type: 'speed', range: 20, time: 5, qs: 10, desc: "Speed Round" }, // very short time per Q
+            10: { type: 'boss', range: 100, time: 15, qs: 15, desc: "Boss Challenge" }
+        };
+        
+        let cfg = configs[l];
+        // Apply scaling for expert levels
+        if (level > 10) {
+            cfg.range += (scale * 10);
+            cfg.time = Math.max(5, cfg.time - scale);
+        }
+        return cfg;
+    }
+
+    generateQuestion() {
+        const cfg = this.currentLevelConfig;
+        let type = cfg.type;
+        
+        // Resolve random types
+        if (type === 'mixed' || type === 'speed' || type === 'boss') {
+            const types = ['add', 'sub', 'mult', 'div'];
+            type = types[Math.floor(Math.random() * types.length)];
+            // Add complex to boss occasionally
+            if(cfg.type === 'boss' && Math.random() > 0.7) type = 'complex';
+        }
+
+        let qText = '', ans = 0, a, b, c;
+
+        switch (type) {
+            case 'add':
+                a = Math.floor(Math.random() * cfg.range) + 1;
+                b = Math.floor(Math.random() * cfg.range) + 1;
+                qText = `${a} + ${b}`;
+                ans = a + b;
+                break;
+            case 'sub':
+                a = Math.floor(Math.random() * cfg.range) + 1;
+                b = Math.floor(Math.random() * a); // ensure positive
+                qText = `${a} - ${b}`;
+                ans = a - b;
+                break;
+            case 'mult':
+                a = Math.floor(Math.random() * 12) + 1; // Tables up to 12
+                b = Math.floor(Math.random() * 12) + 1;
+                qText = `${a} × ${b}`;
+                ans = a * b;
+                break;
+            case 'div':
+                b = Math.floor(Math.random() * 11) + 2; // divisor
+                ans = Math.floor(Math.random() * 12) + 1; // answer
+                a = b * ans; // dividend
+                qText = `${a} ÷ ${b}`;
+                break;
+            case 'complex':
+                // (A + B) * C or similar
+                a = Math.floor(Math.random() * 10) + 1;
+                b = Math.floor(Math.random() * 10) + 1;
+                c = Math.floor(Math.random() * 5) + 2;
+                if (Math.random() > 0.5) {
+                    qText = `(${a} + ${b}) × ${c}`;
+                    ans = (a + b) * c;
+                } else {
+                    let temp = (a * c);
+                    qText = `${temp} ÷ ${c} + ${b}`;
+                    ans = a + b;
+                }
+                break;
+        }
+
+        // Generate Options (1 correct, 3 wrong)
+        let options = new Set([ans]);
+        while(options.size < 4) {
+            let offset = Math.floor(Math.random() * 10) - 5; // -5 to +5
+            if (offset === 0) offset = 1;
+            let fake = ans + offset;
+            if (fake >= 0) options.add(fake); // No negative options usually
+        }
+
+        return {
+            text: qText,
+            correct: ans,
+            options: Array.from(options).sort(() => Math.random() - 0.5)
+        };
+    }
+
+    startLevel() {
+        this.currentLevelConfig = this.getLevelConfig(this.state.level);
+        this.sessionStats = { correct: 0, total: 0, xpGained: 0, streak: 0 };
+        ui.showScreen('game-screen');
+        ui.updateGameHeader();
+        this.nextQuestion();
+    }
+
+    nextQuestion() {
+        if (this.sessionStats.total >= this.currentLevelConfig.qs) {
+            this.endLevel();
+            return;
+        }
+
+        this.qData = this.generateQuestion();
+        this.timeLeft = this.currentLevelConfig.time;
+        ui.renderQuestion(this.qData);
+        this.startTimer();
+    }
+
+    startTimer() {
+        clearInterval(this.timer);
+        ui.updateTimerBar(100);
+        
+        const totalTime = this.timeLeft;
+        this.timer = setInterval(() => {
+            this.timeLeft--;
+            const pct = (this.timeLeft / totalTime) * 100;
+            ui.updateTimerBar(pct);
+
+            if (this.timeLeft <= 0) {
+                this.handleAnswer(null); // Time out
+            }
+        }, 1000);
+    }
+
+    handleAnswer(val) {
+        clearInterval(this.timer);
+        this.sessionStats.total++;
+        this.state.totalQuestions++;
+
+        const isCorrect = val === this.qData.correct;
+        const btn = document.getElementById(`btn-${val}`);
+
+        if (isCorrect) {
+            sound.correct();
+            if (btn) btn.classList.add('correct');
+            
+            // Logic: XP & Streak
+            this.sessionStats.streak++;
+            if (this.sessionStats.streak > this.state.bestStreak) this.state.bestStreak = this.sessionStats.streak;
+            
+            let xp = 10 + (this.sessionStats.streak > 2 ? 5 : 0) + (this.sessionStats.streak > 5 ? 10 : 0);
+            this.state.xp += xp;
+            this.sessionStats.xpGained += xp;
+            this.sessionStats.correct++;
+            
+            ui.showFloater(`+${xp} XP`, btn);
+        } else {
+            sound.wrong();
+            if (btn) btn.classList.add('wrong');
+            // Show correct one
+            const correctBtn = document.getElementById(`btn-${this.qData.correct}`);
+            if(correctBtn) correctBtn.classList.add('correct');
+
+            this.sessionStats.streak = 0;
+        }
+
+        ui.updateGameHeader();
+        
+        setTimeout(() => {
+            this.nextQuestion();
+        }, 1000);
+    }
+
+    endLevel() {
+        const accuracy = Math.round((this.sessionStats.correct / this.sessionStats.total) * 100);
+        const passed = accuracy >= 60; // 60% to pass
+
+        if (passed) {
+            sound.levelUp();
+            this.state.level++;
+            // Add to history for leaderboard
+            this.state.history.push({ 
+                date: new Date().toLocaleDateString(), 
+                xp: this.sessionStats.xpGained,
+                level: this.state.level - 1 
+            });
+        }
+        
+        this.saveState();
+        ui.showSummary(passed, accuracy, this.sessionStats.xpGained);
+    }
+
+    toggleSound() {
+        this.settings.sound = !this.settings.sound;
+    }
+}
+
+/**
+ * UI CONTROLLER
+ */
+const ui = {
+    showScreen: (id) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if (id === 'home-screen') ui.updateHomeStats();
+        if (id === 'leaderboard-screen') ui.renderLeaderboard();
+    },
+
+    toggleTheme: () => {
+        const body = document.body;
+        const current = body.getAttribute('data-theme');
+        body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+    },
+
+    updateHomeStats: () => {
+        document.getElementById('home-level').innerText = game.state.level;
+        document.getElementById('home-xp').innerText = game.state.xp;
+    },
+
+    updateGameHeader: () => {
+        document.getElementById('game-level-disp').innerText = game.state.level;
+        document.getElementById('game-xp-disp').innerText = game.state.xp;
+        document.getElementById('streak-disp').innerText = game.sessionStats.streak;
+        
+        // XP Bar logic (simplified: 100XP per level visual cycle)
+        const xpMod = game.state.xp % 100;
+        // document.querySelector('.xp-fill').style.width = `${xpMod}%`;
+    },
+
+    renderQuestion: (data) => {
+        const qEl = document.getElementById('question-text');
+        qEl.innerText = data.text;
+        
+        const grid = document.getElementById('answers-container');
+        grid.innerHTML = '';
+
+        data.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn answer-btn';
+            btn.innerText = opt;
+            btn.id = `btn-${opt}`;
+            // Handle click vs touch to avoid double firing
+            btn.onclick = (e) => {
+                // Disable all buttons to prevent double tapping
+                Array.from(grid.children).forEach(b => b.disabled = true);
+                game.handleAnswer(opt);
+            };
+            grid.appendChild(btn);
+        });
+    },
+
+    updateTimerBar: (pct) => {
+        const bar = document.getElementById('timer-bar');
+        bar.style.width = `${pct}%`;
+        if(pct < 30) bar.style.background = 'var(--accent-orange)';
+        else bar.style.background = 'var(--accent-green)';
+    },
+
+    showFloater: (text, element) => {
+        if(!element) return;
+        const rect = element.getBoundingClientRect();
+        const float = document.createElement('div');
+        float.className = 'floater';
+        float.innerText = text;
+        float.style.left = rect.left + (rect.width/2) + 'px';
+        float.style.top = rect.top + 'px';
+        document.body.appendChild(float);
+        setTimeout(() => float.remove(), 1000);
+    },
+
+    showSummary: (passed, accuracy, xp) => {
+        const modal = document.getElementById('summary-modal');
+        const title = document.getElementById('modal-title');
+        const msg = document.getElementById('level-msg');
+        
+        document.getElementById('sum-acc').innerText = accuracy + '%';
+        document.getElementById('sum-xp').innerText = '+' + xp;
+
+        if (passed) {
+            title.innerText = "Level Complete!";
+            title.style.color = "var(--accent-green)";
+            msg.innerText = "You are getting smarter every day!";
+        } else {
+            title.innerText = "Try Again!";
+            title.style.color = "var(--accent-orange)";
+            msg.innerText = "Practice makes perfect. Give it another go!";
+        }
+
+        modal.classList.add('open');
+    },
+
+    renderLeaderboard: () => {
+        const list = document.getElementById('leaderboard-list');
+        list.innerHTML = '';
+        
+        // Combine history + fake data for "global" feel
+        let data = [...game.state.history];
+        if (data.length === 0) {
+            list.innerHTML = '<li style="text-align:center; padding:20px; color:var(--text-muted)">Complete a level to see your stats here!</li>';
+            return;
+        }
+
+        // Sort by XP gain descending
+        data.sort((a, b) => b.xp - a.xp);
+
+        data.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'leaderboard-item';
+            li.innerHTML = `
+                <span>#${index + 1} You (Lvl ${item.level})</span>
+                <span style="color:var(--accent-blue)">${item.xp} XP</span>
+            `;
+            list.appendChild(li);
+        });
+    }
+};
+
+// Start
+const game = new MathGame();
+game.closeSummary = () => {
+    document.getElementById('summary-modal').classList.remove('open');
+    ui.showScreen('home-screen');
+};
+
+// Initial Render
+ui.updateHomeStats();
+
+</script>
+
+</body>
+</html>
